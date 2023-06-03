@@ -35,7 +35,7 @@
 //command registers according to SST26VF064B flash's datasheet
 uint8_t Read = 0x03;
 uint8_t SE = 0x20; //Sector erase - erase 4KB of memory array
-uint8_t WREN = 0x06;
+uint8_t WREN = 0x06; //Write Enable
 uint8_t PP = 0x02; //Page Program (Write)
 uint8_t ULBPR = 0x98; //Global Block Protection Unlock - clears all write protection bits
 uint8_t RDSR = 0x05; //Read Status Register
