@@ -91,10 +91,10 @@ void send_command(uint32_t addr)
 uint8_t busy(void)
 {
 	uint8_t temp, status[1];
-	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_7, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_7, GPIO_PIN_RESET); //Chip Enable pin set LOW
 	send_command(RDSR);
 	HAL_SPI_Receive(&hspi3, status, 1, 100);
-	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_7, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_7, GPIO_PIN_SET); //Chip Enable pin set HIGH
 	temp = status[0]&0x80; //first bit of status register -> busy bit
 	return temp;
 }
