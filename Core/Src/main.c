@@ -61,26 +61,26 @@ static void MX_GPIO_Init(void);
 static void MX_SPI3_Init(void);
 static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
-void send_address(uint8_t cmd);
-void send_command(uint32_t addr);
+void send_command(uint8_t cmd);
+void send_address(uint32_t addr);
 uint8_t busy(void);
 void flash_wr_enable(void);
 void flash_GBPU(void);
 void flash_sector_erase(uint32_t addr);
-void flash_write(uint32_t addr, uint8_t* data);
-void flash_read(uint32_t addr, uint8_t* data);
+void flash_write(uint32_t addr, uint8_t* data, uint16_t size);
+void flash_read(uint32_t addr, uint8_t* data, uint16_t size);
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void send_address(uint8_t cmd)
+void send_command(uint8_t cmd)
 {
 	uint8_t cmd_arr[1];
 	cmd_arr[0] = cmd;
 	HAL_SPI_Transmit(&hspi3, cmd_arr, 1, 100);
 }
-void send_command(uint32_t addr)
+void send_address(uint32_t addr)
 {
 	uint8_t addr_arr[3]; //Address is 24b long and sent in 3 cycles
 	addr_arr[0] = (addr>>16)&0x000000ff; //First byte (MSB) of address
@@ -121,24 +121,23 @@ void flash_sector_erase(uint32_t addr)
 	send_address(addr); //clear 4KB of memory array from given address
 	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_7, GPIO_PIN_SET);
 }
-void flash_write(uint32_t addr, uint8_t* data)
+void flash_write(uint32_t addr, uint8_t* data, uint16_t size)
 {
 	while(busy());
 	flash_wr_enable();
 	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_7, GPIO_PIN_RESET);
 	send_command(PP);//Page Program command
 	send_address(addr);
-	HAL_SPI_Transmit (&hspi3, data, sizeof(data), 100);
+	HAL_SPI_Transmit (&hspi3, data, size, 100);
 	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_7, GPIO_PIN_SET);
 }
-void flash_read(uint32_t addr, uint8_t* RXbuffer)
+void flash_read(uint32_t addr, uint8_t* RXbuffer, uint16_t size)
 {
 	while(busy());
-	flash_wr_enable();
 	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_7, GPIO_PIN_RESET);
 	send_command(Read);
 	send_address(addr);
-	HAL_SPI_Transmit (&hspi3, RXbuffer, sizeof(RXbuffer), 100);
+	HAL_SPI_Receive (&hspi3, RXbuffer, size, 100);
 	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_7, GPIO_PIN_SET);
 }
 /* USER CODE END 0 */
@@ -181,8 +180,8 @@ int main(void)
 
   uint8_t tx_buffer[6] = {1,2,3,4,5,6}; //sample data to send to flash
   uint8_t rx_buffer[6];
-  flash_write(107,tx_buffer); //read from tx_buffer...
-  flash_read(107,rx_buffer); //...and store it in rx_buffer
+  flash_write(107,tx_buffer,6); //read from tx_buffer...
+  flash_read(107,rx_buffer,6); //...and store it in rx_buffer
   HAL_Delay(1);
   /* USER CODE END 2 */
 
